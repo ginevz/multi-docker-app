@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t zhginev/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run zhginev/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t zhginev/multi-client ./client
+  - docker build -t zhginev/multi-nginx ./nginx
+  - docker build -t zhginev/multi-server ./server
+  - docker build -t zhginev/multi-worker ./worker
+
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+
+  - docker push zhginev/multi-client
+  - docker push zhginev/multi-nginx
+  - docker push zhginev/multi-server
+  - docker push zhginev/multi-worker
